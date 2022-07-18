@@ -37,7 +37,7 @@ add this to your `CMakeLists.txt`
 include(FetchContent)
 
 FetchContent_Declare(rewind
-    GIT_REPOSITORY https://github.com/itotaljustice/rewind.git
+    GIT_REPOSITORY https://github.com/ITotalJustice/librewind.git
     GIT_TAG        master
 )
 
