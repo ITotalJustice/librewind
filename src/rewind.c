@@ -123,10 +123,18 @@ static bool rewindframe_pop(struct RewindFrame* rwf, void* outdata, const size_t
     return true;
 }
 
-static size_t rewind_calculate_seconds(const size_t seconds_wanted)
+// returns how many slots to allocate per keyframe
+static size_t rewind_calculate_keyframe_slots(const size_t seconds_wanted)
 {
-    const size_t a = REWIND_FRAME_ENTRY_COUNT / 60;
-    return seconds_wanted < a ? a : seconds_wanted / a;
+    // if the user wants less seconds than the number of entries
+    // per keyframe, then default to 1 slot
+    // todo: maybe this should error instead?
+    if (seconds_wanted < REWIND_FRAME_ENTRY_COUNT)
+    {
+        return 1;
+    }
+
+    return seconds_wanted / REWIND_FRAME_ENTRY_COUNT;
 }
 
 bool rewind_init(struct Rewind* rw,
@@ -148,7 +156,7 @@ bool rewind_init(struct Rewind* rw,
 
     rw->compressor = compressor;
     rw->compressor_size = compressor_size;
-    rw->max = rewind_calculate_seconds(seconds_wanted);
+    rw->max = rewind_calculate_keyframe_slots(seconds_wanted);
     rw->frames = calloc(rw->max, sizeof(struct RewindFrame));
 
     return true;
@@ -221,5 +229,26 @@ check_again:
         goto check_again;
     }
 
-    return rewindframe_pop(&rw->frames[rw->index], data, size, rw->compressor);
+    const bool result = rewindframe_pop(&rw->frames[rw->index], data, size, rw->compressor);
+
+    if (rw->frames[rw->index].count == 0)
+    {
+        rewindframe_close(&rw->frames[rw->index]);
+        rw->index = rw->index ? rw->index - 1 : rw->max - 1;
+        rw->count--;
+    }
+
+    return result;
+}
+
+size_t rewind_get_frame_count(const struct Rewind* rw)
+{
+    if (rw->count == 0)
+    {
+        return 0;
+    }
+
+    const size_t count = (rw->count-1) * REWIND_FRAME_ENTRY_COUNT;
+
+    return count + rw->frames[rw->index].count;
 }

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 
 project(rewind
-    VERSION 1.0.0
+    VERSION 1.0.1
     LANGUAGES C
 )
 

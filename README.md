@@ -76,6 +76,12 @@ void run(void)
         else
         {
             emulator_load_state(&state);
+
+            // check if there's any more frames left
+            if (!rewind_get_frame_count(&rw))
+            {
+                rewinding = false;
+            }
         }
     }
 }

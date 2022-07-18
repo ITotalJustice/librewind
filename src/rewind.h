@@ -75,6 +75,9 @@ bool rewind_push(struct Rewind* rw, const void* data, size_t size);
 // the [data] needs to be allocted, and will be filled with the state.
 bool rewind_pop(struct Rewind* rw, void* data, size_t size);
 
+// return the number of frames avaliable
+size_t rewind_get_frame_count(const struct Rewind* rw);
+
 #ifdef __cplusplus
 }
 #endif
