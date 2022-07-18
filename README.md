@@ -61,13 +61,22 @@ void run(void)
     {
         emulator_run_frame();
         struct State state = emulator_save_state();
-        rewind_push(&rw, (uint8_t*)&state, sizeof(state));
+        if (!rewind_push(&rw, &state, sizeof(state)))
+        {
+            // handle error here
+        }
     }
     else
     {
         struct State state;
-        rewind_pop(&rw, (uint8_t*)&state, sizeof(state));
-        emulator_load_state(&state);
+        if (!rewind_pop(&rw, &state, sizeof(state)))
+        {
+            // handle error here
+        }
+        else
+        {
+            emulator_load_state(&state);
+        }
     }
 }
 ```

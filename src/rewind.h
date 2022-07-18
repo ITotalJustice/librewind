@@ -1,5 +1,7 @@
-// Copyright 2022 TotalJustice.
-// SPDX-License-Identifier: Zlib
+/**
+ * Copyright 2022 TotalJustice.
+ * SPDX-License-Identifier: Zlib
+ */
 
 #pragma once
 
@@ -9,8 +11,6 @@ extern "C" {
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
-
 
 #ifndef REWIND_FRAME_ENTRY_COUNT
     #define REWIND_FRAME_ENTRY_COUNT 120
@@ -29,10 +29,9 @@ typedef size_t (*rewind_compressor_func_t)(void* dst_data, size_t dst_size, cons
 
 struct RewindFrameEntry
 {
-    uint8_t* data;
+    void* data;
     size_t size;
     size_t compressed_size;
-    // padding 8
 };
 
 struct RewindFrame
@@ -53,16 +52,28 @@ struct Rewind
     size_t max; // max frames
 };
 
+// inits the rewind struct, allocating the number of frames needed.
+// the function pointers must NOT be null.
+// call rewind_close() before exiting to free allocted memory!
 bool rewind_init(struct Rewind* rw,
     const rewind_compressor_func_t compressor,
     const rewind_compressor_size_func_t compressor_size,
     size_t seconds_wanted
 );
 
+// frees all allocated data.
+// to re-use, call rewind_init() again.
 void rewind_close(struct Rewind* rw);
 
-bool rewind_pop(struct Rewind* rw, uint8_t* data, size_t size);
-bool rewind_push(struct Rewind* rw, const uint8_t* data, size_t size);
+// push a new savestate.
+// this should be called once each frame.
+// the size between each call CANNOT be change!
+bool rewind_push(struct Rewind* rw, const void* data, size_t size);
+
+// pops a savestate.
+// this should be called once per frame in which you are rewinding.
+// the [data] needs to be allocted, and will be filled with the state.
+bool rewind_pop(struct Rewind* rw, void* data, size_t size);
 
 #ifdef __cplusplus
 }

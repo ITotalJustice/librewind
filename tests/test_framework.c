@@ -4,8 +4,9 @@
  */
 
 #include "test_framework.h"
-#include <rewind.h>
+#include <stdint.h>
 #include <string.h>
+#include <rewind.h>
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 #define TEST(result) if (!result) { return false; }
