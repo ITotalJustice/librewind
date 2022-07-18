@@ -1,0 +1,12 @@
+{
+    "name": "librewind",
+    "version-string": "1.0.0",
+    "homepage": "https://github.com/ITotalJustice/librewind",
+    "description": "a simple rewind lib for emulators, written in c99",
+    "license": "Zlib",
+    "dependencies": [
+      "lz4",
+      "zlib",
+      "zstd"
+    ]
+  }
