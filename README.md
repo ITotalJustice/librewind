@@ -109,6 +109,7 @@ ctest --test-dir build
 
 ## thanks
 
+- dillon for his algorithm (i simply implemented it)
 - lz4 https://github.com/lz4/lz4
 - zlib https://github.com/madler/zlib
 - zstd https://github.com/facebook/zstd

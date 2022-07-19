@@ -1,7 +1,5 @@
-/**
- * Copyright 2022 TotalJustice.
- * SPDX-License-Identifier: Zlib
- */
+// Copyright 2022 TotalJustice.
+// SPDX-License-Identifier: Zlib
 
 #pragma once
 
@@ -11,10 +9,6 @@ extern "C" {
 
 #include <stdbool.h>
 #include <stddef.h>
-
-#ifndef REWIND_FRAME_ENTRY_COUNT
-    #define REWIND_FRAME_ENTRY_COUNT 120
-#endif
 
 enum CompressMode
 {
@@ -27,19 +21,11 @@ enum CompressMode
 typedef size_t (*rewind_compressor_size_func_t)(size_t src_size);
 typedef size_t (*rewind_compressor_func_t)(void* dst_data, size_t dst_size, const void* src_data, size_t src_size, int mode);
 
-struct RewindFrameEntry
+struct RewindFrame
 {
     void* data;
     size_t size;
     size_t compressed_size;
-};
-
-struct RewindFrame
-{
-    struct RewindFrameEntry keyframe;
-    struct RewindFrameEntry data[REWIND_FRAME_ENTRY_COUNT]; // todo: make adjustable
-    size_t count;
-    bool keyframe_compressed;
 };
 
 struct Rewind
@@ -47,6 +33,7 @@ struct Rewind
     rewind_compressor_func_t compressor;
     rewind_compressor_size_func_t compressor_size;
     struct RewindFrame* frames;
+    struct RewindFrame current_frame;
     size_t index; // which frame we are currently in
     size_t count; // how many frames we have allocated
     size_t max; // max frames

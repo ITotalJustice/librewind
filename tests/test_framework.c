@@ -39,11 +39,14 @@ static bool compare(void)
 static bool test_1(void)
 {
     test_init();
+
     TEST(rewind_push(&rw, data_to_compress[0], sizeof(data_to_compress[0])))
     TEST(rewind_get_frame_count(&rw) == 1);
     TEST(rewind_pop(&rw, output[0], sizeof(output[0])));
     TEST(rewind_get_frame_count(&rw) == 0);
-    return compare();
+    TEST(compare());
+
+    return true;
 }
 
 // push 3, pop 3
@@ -63,9 +66,10 @@ static bool test_2(void)
         TEST(rewind_pop(&rw, output[i], sizeof(output[i])))
     }
 
+    TEST(compare());
     TEST(rewind_get_frame_count(&rw) == 0);
 
-    return compare();
+    return true;
 }
 
 // push 120, pop 120
@@ -78,7 +82,6 @@ static bool test_3(void)
         for (size_t i = 0; i < ARRAY_SIZE(data_to_compress); i++)
         {
             TEST(rewind_push(&rw, data_to_compress[i], sizeof(data_to_compress[i])))
-            // TEST(rewind_get_frame_count(&rw) == ((j * (120 / ARRAY_SIZE(data_to_compress))) + i));
         }
     }
 
@@ -91,10 +94,7 @@ static bool test_3(void)
             TEST(rewind_pop(&rw, output[i], sizeof(output[i])))
         }
 
-        if (!compare())
-        {
-            return false;
-        }
+        TEST(compare());
     }
 
     TEST(rewind_get_frame_count(&rw) == 0)
@@ -115,18 +115,17 @@ static bool test_4(void)
         }
     }
 
-    TEST(rewind_get_frame_count(&rw) == 3);
+    TEST(rewind_get_frame_count(&rw) == 120);
 
-    for (size_t i = 0; i < ARRAY_SIZE(data_to_compress); i++)
+    for (size_t j = 0; j < 120 / ARRAY_SIZE(data_to_compress); j++)
     {
-        TEST(rewind_pop(&rw, output[i], sizeof(output[i])))
+        for (size_t i = 0; i < ARRAY_SIZE(data_to_compress); i++)
+        {
+            TEST(rewind_pop(&rw, output[i], sizeof(output[i])))
+        }
     }
 
-    if (!compare())
-    {
-        return false;
-    }
-
+    TEST(compare());
     TEST(rewind_get_frame_count(&rw) == 0)
 
     return true;
