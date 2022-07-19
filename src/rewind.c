@@ -102,7 +102,6 @@ bool rewind_push(struct Rewind* rw, const void* data, size_t size)
         // xor and compressit against the new frame and stash it
         assert(rw->current_frame.data);
 
-        // rw->frames[rw->index] = rw->current_frame;
         xor(rw->current_frame.data, data, size);
 
         rw->current_frame.compressed_size = rw->compressor_size(rw->current_frame.size);
