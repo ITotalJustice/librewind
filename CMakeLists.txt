@@ -20,6 +20,30 @@ option(TEST_ZSTD "build ZSTD test" OFF)
 option(TEST_SNAPPY "build SNAPPY test" OFF)
 option(TEST_FASTLZ "build FASTLZ test" OFF)
 option(TEST_LZO "build LZO test" OFF)
+option(TEST_ALL "builds all tests" OFF)
+
+if (TEST_ALL)
+    set(COMPRESSOR_LZ4 ON)
+    set(TEST_LZ4 ON)
+
+    set(COMPRESSOR_RAW ON)
+    set(TEST_RAW ON)
+
+    set(COMPRESSOR_ZLIB ON)
+    set(TEST_ZLIB ON)
+
+    set(COMPRESSOR_ZSTD ON)
+    set(TEST_ZSTD ON)
+
+    set(COMPRESSOR_SNAPPY ON)
+    set(TEST_SNAPPY ON)
+
+    set(COMPRESSOR_FASTLZ ON)
+    set(TEST_FASTLZ ON)
+
+    set(COMPRESSOR_LZO ON)
+    set(TEST_LZO ON)
+endif()
 
 # export compile commands
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
