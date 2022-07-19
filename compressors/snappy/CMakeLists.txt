@@ -14,5 +14,7 @@ target_compile_options(compressor_snappy PRIVATE
     >
 )
 
+set_target_properties(compressor_snappy PROPERTIES CXX_STANDARD 11)
+
 find_package(Snappy CONFIG REQUIRED)
 target_link_libraries(compressor_snappy PRIVATE Snappy::snappy)
