@@ -20,3 +20,7 @@ endif()
 if (TEST_ZSTD)
     add_subdirectory(zstd)
 endif()
+
+if (TEST_SNAPPY)
+    add_subdirectory(snappy)
+endif()

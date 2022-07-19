@@ -33,6 +33,7 @@ add this to your `CMakeLists.txt`
 # SET(COMPRESSOR_RAW ON)
 # SET(COMPRESSOR_ZLIB ON)
 # SET(COMPRESSOR_ZSTD ON)
+# SET(COMPRESSOR_SNAPPY ON)
 
 include(FetchContent)
 
@@ -49,6 +50,7 @@ target_link_libraries(your_exe PRIVATE
     # compressor_raw
     # compressor_zlib
     # compressor_zstd
+    # compressor_snappy
 )
 ```
 
@@ -98,7 +100,8 @@ cmake -B build \
 -DCOMPRESSOR_LZ4=ON -DTEST_LZ4=ON \
 -DCOMPRESSOR_RAW=ON -DTEST_RAW=ON \
 -DCOMPRESSOR_ZLIB=ON -DTEST_ZLIB=ON \
--DCOMPRESSOR_ZSTD=ON -DTEST_ZSTD=ON
+-DCOMPRESSOR_ZSTD=ON -DTEST_ZSTD=ON \
+-DCOMPRESSOR_SNAPPY=ON -DTEST_SNAPPY=ON
 
 cmake --build build
 
@@ -112,3 +115,4 @@ ctest --test-dir build
 - lz4 https://github.com/lz4/lz4
 - zlib https://github.com/madler/zlib
 - zstd https://github.com/facebook/zstd
+- snappy https://github.com/google/snappy

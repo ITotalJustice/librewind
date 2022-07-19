@@ -15,3 +15,7 @@ endif()
 if (COMPRESSOR_ZSTD)
     add_subdirectory(zstd)
 endif()
+
+if (COMPRESSOR_SNAPPY)
+    add_subdirectory(snappy)
+endif()

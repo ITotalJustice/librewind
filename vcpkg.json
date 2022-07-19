@@ -7,6 +7,7 @@
     "dependencies": [
       "lz4",
       "zlib",
-      "zstd"
+      "zstd",
+      "snappy"
     ]
   }
