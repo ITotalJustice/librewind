@@ -19,3 +19,7 @@ endif()
 if (COMPRESSOR_SNAPPY)
     add_subdirectory(snappy)
 endif()
+
+if (COMPRESSOR_FASTLZ)
+    add_subdirectory(fastlz)
+endif()

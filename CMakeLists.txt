@@ -10,12 +10,14 @@ option(COMPRESSOR_RAW "" OFF)
 option(COMPRESSOR_ZLIB "" OFF)
 option(COMPRESSOR_ZSTD "" OFF)
 option(COMPRESSOR_SNAPPY "" OFF)
+option(COMPRESSOR_FASTLZ "" OFF)
 
 option(TEST_LZ4 "build LZ4 test" OFF)
 option(TEST_RAW "build RAW test" OFF)
 option(TEST_ZLIB "build ZLIB test" OFF)
 option(TEST_ZSTD "build ZSTD test" OFF)
 option(TEST_SNAPPY "build SNAPPY test" OFF)
+option(TEST_FASTLZ "build FASTLZ test" OFF)
 
 # export compile commands
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)

@@ -24,3 +24,7 @@ endif()
 if (TEST_SNAPPY)
     add_subdirectory(snappy)
 endif()
+
+if (TEST_FASTLZ)
+    add_subdirectory(fastlz)
+endif()
