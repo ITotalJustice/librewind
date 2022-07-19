@@ -1,3 +1,8 @@
+/**
+ * Copyright 2022 TotalJustice.
+ * SPDX-License-Identifier: Zlib
+ */
+
 #include <test_framework.h>
 #include <compressor_lz4.h>
 
