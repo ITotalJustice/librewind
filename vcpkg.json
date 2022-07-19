@@ -9,6 +9,7 @@
       "zlib",
       "zstd",
       "snappy",
-      "fastlz"
+      "fastlz",
+      "lzo"
     ]
   }

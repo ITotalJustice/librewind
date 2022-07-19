@@ -23,3 +23,7 @@ endif()
 if (COMPRESSOR_FASTLZ)
     add_subdirectory(fastlz)
 endif()
+
+if (COMPRESSOR_LZO)
+    add_subdirectory(lzo)
+endif()

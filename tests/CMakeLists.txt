@@ -28,3 +28,7 @@ endif()
 if (TEST_FASTLZ)
     add_subdirectory(fastlz)
 endif()
+
+if (TEST_LZO)
+    add_subdirectory(lzo)
+endif()
