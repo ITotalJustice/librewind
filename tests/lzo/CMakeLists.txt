@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.13)
 
 project(test_lzo LANGUAGES C)
 add_executable(test_lzo test_lzo.c)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.13)
 
 project(test_framework LANGUAGES C)
 add_library(test_framework test_framework.c)

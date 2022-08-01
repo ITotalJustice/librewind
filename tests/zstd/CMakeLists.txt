@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.13)
 
 project(test_zstd LANGUAGES C)
 add_executable(test_zstd test_zstd.c)

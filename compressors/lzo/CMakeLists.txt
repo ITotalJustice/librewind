@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.13)
 
 project(compressor_lzo LANGUAGES C)
 add_library(compressor_lzo compressor_lzo.c)

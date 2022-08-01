@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.13)
 
 if (COMPRESSOR_LZ4)
     add_subdirectory(lz4)

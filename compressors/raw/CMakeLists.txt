@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.13)
 
 project(compressor_raw LANGUAGES C)
 add_library(compressor_raw compressor_raw.c)
