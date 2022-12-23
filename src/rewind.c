@@ -17,8 +17,9 @@ static void xor(void* _frame, const void* _keydata, const size_t size)
 {
     char* frame = (char*)_frame;
     const char* keydata = (const char*)_keydata;
+    size_t i;
 
-    for (size_t i = 0; i < size; i++)
+    for (i = 0; i < size; i++)
     {
         frame[i] ^= keydata[i];
     }
@@ -36,14 +37,14 @@ static void rewindframe_close(struct RewindFrame* rwf)
 bool rewind_init(struct Rewind* rw,
     const rewind_compressor_func_t compressor,
     const rewind_compressor_size_func_t compressor_size,
-    size_t seconds_wanted
+    size_t frames_wanted
 ) {
     assert(rw);
     assert(compressor);
     assert(compressor_size);
-    assert(seconds_wanted);
+    assert(frames_wanted);
 
-    if (!rw || !compressor || !compressor_size || !seconds_wanted)
+    if (!rw || !compressor || !compressor_size || !frames_wanted)
     {
         return false;
     }
@@ -52,7 +53,7 @@ bool rewind_init(struct Rewind* rw,
 
     rw->compressor = compressor;
     rw->compressor_size = compressor_size;
-    rw->max = seconds_wanted;
+    rw->max = frames_wanted;
     rw->frames = calloc(rw->max, sizeof(struct RewindFrame));
 
     return true;
@@ -62,7 +63,8 @@ void rewind_close(struct Rewind* rw)
 {
     if (rw->frames)
     {
-        for (size_t i = 0; i < rw->count; i++)
+        size_t i;
+        for (i = 0; i < rw->count; i++)
         {
             rewindframe_close(&rw->frames[i]);
         }

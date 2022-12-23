@@ -45,7 +45,7 @@ struct Rewind
 bool rewind_init(struct Rewind* rw,
     const rewind_compressor_func_t compressor,
     const rewind_compressor_size_func_t compressor_size,
-    size_t seconds_wanted
+    size_t frames_wanted
 );
 
 // frees all allocated data.

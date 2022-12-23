@@ -1,6 +1,6 @@
 # librewind
 
-a simple rewind lib for emulators, written in c99
+a simple rewind lib for emulators, written in c89
 
 ---
 
