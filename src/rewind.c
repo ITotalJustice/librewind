@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 TotalJustice.
+ * Copyright 2024 TotalJustice.
  * SPDX-License-Identifier: Zlib
  */
 
@@ -10,9 +10,27 @@
 #include <string.h>
 #include <assert.h>
 
-// matching data gets xored to 0, which compresses really well
-// todo (velocity): do 64bit xor. byte xor's until on 64 aligned data
-// boundry. i assume i should do 32bit xor on 32bit systems.
+struct RewindBuffer
+{
+    void* data;
+    size_t size;
+};
+
+struct Rewind
+{
+    rewind_compressor_func_t compressor;
+    rewind_compressor_size_func_t compressor_size;
+
+    struct RewindBuffer* frames; /* array of compressed frames. */
+    struct RewindBuffer current_frame; /* current uncompressed frame. */
+    struct RewindBuffer deflate_buffer; /* buffer that we compress into. */
+
+    size_t index; /* which frame we are currently in. */
+    size_t count; /* how many frames we have allocated. */
+    size_t max; /* max frames. */
+};
+
+/* matching data gets xored to 0, which compresses really well. */
 static void xor(void* _frame, const void* _keydata, const size_t size)
 {
     char* frame = (char*)_frame;
@@ -25,7 +43,7 @@ static void xor(void* _frame, const void* _keydata, const size_t size)
     }
 }
 
-static void rewindframe_close(struct RewindFrame* rwf)
+static void rewindbuffer_free(struct RewindBuffer* rwf)
 {
     if (rwf->data)
     {
@@ -34,143 +52,148 @@ static void rewindframe_close(struct RewindFrame* rwf)
     memset(rwf, 0, sizeof(*rwf));
 }
 
-bool rewind_init(struct Rewind* rw,
+Rewind* rewind_init(
     const rewind_compressor_func_t compressor,
     const rewind_compressor_size_func_t compressor_size,
+    size_t state_size,
     size_t frames_wanted
 ) {
-    assert(rw);
-    assert(compressor);
-    assert(compressor_size);
-    assert(frames_wanted);
-
-    if (!rw || !compressor || !compressor_size || !frames_wanted)
+    if (!compressor || !compressor_size || !state_size || !frames_wanted)
     {
-        return false;
+        return NULL;
     }
 
-    memset(rw, 0, sizeof(struct Rewind));
+    Rewind* rw = calloc(1, sizeof(*rw));
+    if (!rw)
+    {
+        return NULL;
+    }
 
     rw->compressor = compressor;
     rw->compressor_size = compressor_size;
     rw->max = frames_wanted;
-    rw->frames = calloc(rw->max, sizeof(struct RewindFrame));
+    rw->frames = calloc(rw->max, sizeof(*rw->frames));
 
-    return true;
+    rw->current_frame.size = state_size;
+    rw->current_frame.data = malloc(rw->current_frame.size);
+    rw->deflate_buffer.size = rw->compressor_size(state_size);
+    rw->deflate_buffer.data = malloc(rw->deflate_buffer.size);
+
+    if (!rw->frames || !rw->current_frame.data || !rw->deflate_buffer.data || !rw->deflate_buffer.size)
+    {
+        rewind_close(rw);
+        return NULL;
+    }
+
+    return rw;
 }
 
-void rewind_close(struct Rewind* rw)
+void rewind_close(Rewind* rw)
 {
+    if (!rw)
+    {
+        return;
+    }
+
     if (rw->frames)
     {
         size_t i;
         for (i = 0; i < rw->count; i++)
         {
-            rewindframe_close(&rw->frames[i]);
+            rewindbuffer_free(&rw->frames[i]);
         }
 
         free(rw->frames);
     }
 
-    if (rw->count)
-    {
-        rewindframe_close(&rw->current_frame);
-    }
+    rewindbuffer_free(&rw->current_frame);
+    rewindbuffer_free(&rw->deflate_buffer);
 
-    memset(rw, 0, sizeof(*rw));
+    free(rw);
 }
 
-static void rewind_store_current_frame(struct Rewind* rw, const void* data, size_t size)
+static void rewind_store_current_frame(Rewind* rw, const void* data, size_t size)
 {
-    rw->current_frame.data = malloc(size);
-    rw->current_frame.size = size;
-    rw->current_frame.compressed_size = 0;
+    assert(rw->current_frame.size == size);
     memcpy(rw->current_frame.data, data, size);
-
     rw->count = rw->count < rw->max ? rw->count + 1 : rw->max;
 }
 
-bool rewind_push(struct Rewind* rw, const void* data, size_t size)
+bool rewind_push(Rewind* rw, const void* data, size_t size)
 {
-    // if we have no frames, store the current frame
+    if (!rw || !data || rw->current_frame.size != size)
+    {
+        return false;
+    }
+
+    /* if we have no frames, store the current frame */
     if (rw->count == 0)
     {
-        assert(rw->current_frame.data == NULL);
         rewind_store_current_frame(rw, data, size);
     }
     else
     {
-        // we have a current frame,
-        // xor and compressit against the new frame and stash it
-        assert(rw->current_frame.data);
-
+        /* we have a current frame. */
         xor(rw->current_frame.data, data, size);
 
-        rw->current_frame.compressed_size = rw->compressor_size(rw->current_frame.size);
-        if (!rw->current_frame.compressed_size)
-        {
-            assert(rw->current_frame.compressed_size);
-            return false;
-        }
+        struct RewindBuffer new_frame;
+        new_frame.size = rw->compressor(rw->deflate_buffer.data, rw->deflate_buffer.size, rw->current_frame.data, size, CompressMode_DEFLATE);
 
-        void* buf = malloc(rw->current_frame.compressed_size);
-        rw->current_frame.compressed_size = rw->compressor(buf, rw->current_frame.compressed_size, rw->current_frame.data, rw->current_frame.size, CompressMode_DEFLATE);
-
-        if (rw->current_frame.compressed_size == COMPRESS_ERROR)
+        if (new_frame.size == COMPRESS_ERROR)
         {
             assert(!"failed to compress");
-            free(buf);
             return false;
         }
 
-        // "shrink" the data compressed data with the actual size.
-        free(rw->current_frame.data);
-        rw->current_frame.data = realloc(buf, rw->current_frame.compressed_size);
-        assert(rw->current_frame.data);
-
-        // finally, stash the new data!
-        if (rw->frames[rw->index].data)
+        /* copy compressed data to buffer to be stored in the frame arary. */
+        new_frame.data = malloc(new_frame.size);
+        if (!new_frame.data)
         {
-            rewindframe_close(&rw->frames[rw->index]);
+            assert(!"failed to malloc new frame data");
+            return false;
         }
 
-        rw->frames[rw->index] = rw->current_frame;
+        memcpy(new_frame.data, rw->deflate_buffer.data, new_frame.size);
+
+        /* remove old frame if data exists. */
+        rewindbuffer_free(&rw->frames[rw->index]);
+
+        rw->frames[rw->index] = new_frame;
         rw->index = (rw->index + 1) % rw->max;
 
-        // now store the new data as the current frame
+        /* now store the new data as the current frame. */
         rewind_store_current_frame(rw, data, size);
     }
 
     return true;
 }
 
-bool rewind_pop(struct Rewind* rw, void* data, size_t size)
+bool rewind_pop(Rewind* rw, void* data, size_t size)
 {
-    if (rw->count == 0)
+    if (!rw || !data || rw->current_frame.size != size)
     {
         return false;
     }
 
-    assert(rw->current_frame.data);
-    assert(rw->current_frame.size == size);
+    if (rw->count == 0)
+    {
+        assert(!"rewind pop called with no frames stored!");
+        return false;
+    }
 
-    memcpy(data, rw->current_frame.data, rw->current_frame.size);
-    rewindframe_close(&rw->current_frame);
+    memcpy(data, rw->current_frame.data, size);
 
     if (rw->count > 1)
     {
-        rw->index = rw->index == 0 ? rw->max - 1 : rw->index - 1;
-
-        rw->current_frame.data = malloc(rw->frames[rw->index].size);
-        rw->current_frame.size = rw->frames[rw->index].size;
-
-        const size_t result = rw->compressor(rw->current_frame.data, rw->current_frame.size, rw->frames[rw->index].data, rw->frames[rw->index].compressed_size, CompressMode_INFLATE);
-        if (!result || result == COMPRESS_ERROR)
+        rw->index = (rw->index - 1) % rw->max;
+        const size_t result = rw->compressor(rw->current_frame.data, rw->current_frame.size, rw->frames[rw->index].data, rw->frames[rw->index].size, CompressMode_INFLATE);
+        if (!result || result == COMPRESS_ERROR || result != rw->current_frame.size)
         {
             assert(!"failed to uncompress");
             return false;
         }
 
+        /* store new buffer. */
         xor(rw->current_frame.data, data, rw->current_frame.size);
     }
 
@@ -179,7 +202,7 @@ bool rewind_pop(struct Rewind* rw, void* data, size_t size)
     return true;
 }
 
-size_t rewind_get_frame_count(const struct Rewind* rw)
+size_t rewind_get_frame_count(const Rewind* rw)
 {
     return rw->count;
 }

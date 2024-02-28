@@ -5,7 +5,6 @@
 
 #include <fastlz.h>
 #include <stddef.h>
-#include <assert.h>
 
 enum CompressMode
 {
@@ -29,26 +28,21 @@ size_t compressor_fastlz_size(const size_t src_size)
 
 size_t compressor_fastlz(void* dst_data, const size_t dst_size, const void* src_data, const size_t src_size, int mode)
 {
+    int result;
+
     if (mode == CompressMode_DEFLATE)
     {
-        const int result = fastlz_compress_level(1, src_data, src_size, dst_data);
-
-        if (result <= 0)
-        {
-            return COMPRESS_ERROR;
-        }
-
-        return result;
+        result = fastlz_compress_level(1, src_data, src_size, dst_data);
     }
     else
     {
-        const int result = fastlz_decompress(src_data, src_size, dst_data, dst_size);
-
-        if (result <= 0)
-        {
-            return COMPRESS_ERROR;
-        }
-
-        return result;
+        result = fastlz_decompress(src_data, src_size, dst_data, dst_size);
     }
+
+    if (result <= 0)
+    {
+        return COMPRESS_ERROR;
+    }
+
+    return result;
 }

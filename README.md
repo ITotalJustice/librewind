@@ -4,12 +4,6 @@ a simple rewind lib for emulators, written in c89
 
 ---
 
-the implementaion currently isn't the best. malloc, free and realloc are called on every `rewind_push` or `rewind_pop`.
-
-i do plan to addd an option of passing in a large chunk of memory and use that as a mempory pool. or, allow the use of custom allocators.
-
----
-
 ## compressors
 
 a compressor is needed to use librewind. this compressor will be called to defalte / inflate the data on calls to push / pop respectively.
@@ -41,7 +35,7 @@ include(FetchContent)
 
 FetchContent_Declare(rewind
     GIT_REPOSITORY https://github.com/ITotalJustice/librewind.git
-    GIT_TAG        master
+    GIT_TAG        v2.0.0
 )
 
 FetchContent_MakeAvailable(rewind)

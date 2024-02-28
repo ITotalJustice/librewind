@@ -13,8 +13,6 @@
 #define TEST(result) if (!(result)) { assert(0); return false; }
 #define TEST2(result, num) if (!(result)) { assert(0); return num; }
 
-static struct Rewind rw;
-
 static const uint8_t data_to_compress[3][10] =
 {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -36,44 +34,44 @@ static bool compare(void)
 }
 
 // push 1, pop 1
-static bool test_1(void)
+static bool test_1(Rewind* rw)
 {
     test_init();
 
-    TEST(rewind_push(&rw, data_to_compress[0], sizeof(data_to_compress[0])))
-    TEST(rewind_get_frame_count(&rw) == 1);
-    TEST(rewind_pop(&rw, output[0], sizeof(output[0])));
-    TEST(rewind_get_frame_count(&rw) == 0);
+    TEST(rewind_push(rw, data_to_compress[0], sizeof(data_to_compress[0])))
+    TEST(rewind_get_frame_count(rw) == 1);
+    TEST(rewind_pop(rw, output[0], sizeof(output[0])));
+    TEST(rewind_get_frame_count(rw) == 0);
     TEST(compare());
 
     return true;
 }
 
 // push 3, pop 3
-static bool test_2(void)
+static bool test_2(Rewind* rw)
 {
     test_init();
     for (size_t i = 0; i < ARRAY_SIZE(data_to_compress); i++)
     {
-        TEST(rewind_push(&rw, data_to_compress[i], sizeof(data_to_compress[i])))
-        TEST(rewind_get_frame_count(&rw) == (i+1));
+        TEST(rewind_push(rw, data_to_compress[i], sizeof(data_to_compress[i])))
+        TEST(rewind_get_frame_count(rw) == (i+1));
     }
 
-    TEST(rewind_get_frame_count(&rw) == 3);
+    TEST(rewind_get_frame_count(rw) == 3);
 
     for (size_t i = 0; i < ARRAY_SIZE(data_to_compress); i++)
     {
-        TEST(rewind_pop(&rw, output[i], sizeof(output[i])))
+        TEST(rewind_pop(rw, output[i], sizeof(output[i])))
     }
 
     TEST(compare());
-    TEST(rewind_get_frame_count(&rw) == 0);
+    TEST(rewind_get_frame_count(rw) == 0);
 
     return true;
 }
 
 // push 120, pop 120
-static bool test_3(void)
+static bool test_3(Rewind* rw)
 {
     test_init();
 
@@ -81,29 +79,29 @@ static bool test_3(void)
     {
         for (size_t i = 0; i < ARRAY_SIZE(data_to_compress); i++)
         {
-            TEST(rewind_push(&rw, data_to_compress[i], sizeof(data_to_compress[i])))
+            TEST(rewind_push(rw, data_to_compress[i], sizeof(data_to_compress[i])))
         }
     }
 
-    TEST(rewind_get_frame_count(&rw) == 120);
+    TEST(rewind_get_frame_count(rw) == 120);
 
     for (size_t j = 0; j < 120 / ARRAY_SIZE(data_to_compress); j++)
     {
         for (size_t i = 0; i < ARRAY_SIZE(data_to_compress); i++)
         {
-            TEST(rewind_pop(&rw, output[i], sizeof(output[i])))
+            TEST(rewind_pop(rw, output[i], sizeof(output[i])))
         }
 
         TEST(compare());
     }
 
-    TEST(rewind_get_frame_count(&rw) == 0)
+    TEST(rewind_get_frame_count(rw) == 0)
 
     return true;
 }
 
 // push 123, pop 123
-static bool test_4(void)
+static bool test_4(Rewind* rw)
 {
     test_init();
 
@@ -111,36 +109,40 @@ static bool test_4(void)
     {
         for (size_t i = 0; i < ARRAY_SIZE(data_to_compress); i++)
         {
-            TEST(rewind_push(&rw, data_to_compress[i], sizeof(data_to_compress[i])))
+            TEST(rewind_push(rw, data_to_compress[i], sizeof(data_to_compress[i])))
         }
     }
 
-    TEST(rewind_get_frame_count(&rw) == 120);
+    TEST(rewind_get_frame_count(rw) == 120);
 
     for (size_t j = 0; j < 120 / ARRAY_SIZE(data_to_compress); j++)
     {
         for (size_t i = 0; i < ARRAY_SIZE(data_to_compress); i++)
         {
-            TEST(rewind_pop(&rw, output[i], sizeof(output[i])))
+            TEST(rewind_pop(rw, output[i], sizeof(output[i])))
         }
     }
 
     TEST(compare());
-    TEST(rewind_get_frame_count(&rw) == 0)
+    TEST(rewind_get_frame_count(rw) == 0)
 
     return true;
 }
 
 int test_framework_run(const rewind_compressor_func_t comp_func, const rewind_compressor_size_func_t comp_size)
 {
-    rewind_init(&rw, comp_func, comp_size, 120);
+    Rewind* rw = rewind_init(comp_func, comp_size, sizeof(data_to_compress[0]), 120);
+    if (!rw)
+    {
+        return false;
+    }
 
-    TEST2(test_1(), 1);
-    TEST2(test_2(), 2);
-    TEST2(test_3(), 3);
-    TEST2(test_4(), 4);
+    TEST2(test_1(rw), 1);
+    TEST2(test_2(rw), 2);
+    TEST2(test_3(rw), 3);
+    TEST2(test_4(rw), 4);
 
-    rewind_close(&rw);
+    rewind_close(rw);
 
     return 0;
 }

@@ -22,19 +22,14 @@ size_t compressor_lzo_size(const size_t src_size)
 
 size_t compressor_lzo(void* dst_data, const size_t dst_size, const void* src_data, const size_t src_size, int mode)
 {
+    int result;
+    lzo_uint output_size = dst_size;
+
     if (mode == CompressMode_DEFLATE)
     {
         static char mem[LZO1X_MEM_COMPRESS];
-        lzo_uint output_size = dst_size;
 
-        const int result = lzo1x_1_compress(src_data, src_size, dst_data, &output_size, mem);
-
-        if (result != LZO_E_OK)
-        {
-            return COMPRESS_ERROR;
-        }
-
-        return output_size;
+        result = lzo1x_1_compress(src_data, src_size, dst_data, &output_size, mem);
     }
     else
     {
@@ -43,15 +38,14 @@ size_t compressor_lzo(void* dst_data, const size_t dst_size, const void* src_dat
         #else
             char* mem = NULL;
         #endif
-        lzo_uint output_size = dst_size;
 
-        const int result = lzo1x_decompress(src_data, src_size, dst_data, &output_size, mem);
-
-        if (result != LZO_E_OK)
-        {
-            return COMPRESS_ERROR;
-        }
-
-        return output_size;
+        result = lzo1x_decompress(src_data, src_size, dst_data, &output_size, mem);
     }
+
+    if (result != LZO_E_OK)
+    {
+        return COMPRESS_ERROR;
+    }
+
+    return output_size;
 }
